@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Delete User - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Delete User</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <p class="mb-4">Are you sure you want to delete <strong>{{ object.username }}</strong>?</p>
+        <p class="text-sm text-gray-600 mb-6">This action will soft-delete the user. It can be restored later if needed.</p>
+        
+        {% if object == request.user %}
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+            <p class="text-red-600 text-sm">You cannot delete your own account.</p>
+        </div>
+        {% endif %}
+        
+        <form method="post">
+            {{ csrf_input }}
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url('users:list') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded" {% if object == request.user %}disabled{% endif %}>
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

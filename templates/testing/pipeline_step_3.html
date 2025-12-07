@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "testing/pipeline_progress.html" as progress %}
+
+{% block title %}Step 3: Results Entry - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    {{ progress.progress_bar(3, 4) }}
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-6">Step 3: Results Entry</h2>
+        
+        <div class="mb-4 p-4 bg-blue-50 rounded">
+            <p class="font-semibold">Product: {{ test_request.product.name }}</p>
+            <p class="text-sm text-gray-600">Batch: {{ test_request.batch_number }}</p>
+        </div>
+        
+        <form method="post">
+            {{ csrf_input }}
+            
+            <div class="space-y-4">
+                {% for param in parameters %}
+                <div class="border rounded p-4">
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        {{ param.name }}
+                        {% if param.data_type == 'Numeric' %}
+                            <span class="text-sm text-gray-500">(Numeric)</span>
+                        {% elif param.data_type == 'Boolean' %}
+                            <span class="text-sm text-gray-500">(Yes/No)</span>
+                        {% else %}
+                            <span class="text-sm text-gray-500">(Text)</span>
+                        {% endif %}
+                    </label>
+                    
+                    {% if param.data_type == 'Numeric' %}
+                        <input type="number" 
+                               name="value_{{ param.id }}" 
+                               step="0.01" 
+                               value="{{ existing_results.get(param.id, '') }}"
+                               class="w-full px-4 py-2 border rounded" 
+                               required>
+                    {% elif param.data_type == 'Boolean' %}
+                        <select name="value_{{ param.id }}" 
+                                class="w-full px-4 py-2 border rounded" 
+                                required>
+                            <option value="">Select...</option>
+                            <option value="True" {% if existing_results.get(param.id) == 'True' %}selected{% endif %}>Yes</option>
+                            <option value="False" {% if existing_results.get(param.id) == 'False' %}selected{% endif %}>No</option>
+                        </select>
+                    {% else %}
+                        <input type="text" 
+                               name="value_{{ param.id }}" 
+                               value="{{ existing_results.get(param.id, '') }}"
+                               class="w-full px-4 py-2 border rounded" 
+                               required>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-6 flex justify-between">
+                <a href="{{ url('testing:pipeline_step', test_id=test_request.id, step=2) }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    ← Back
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+                    Next: Review & Submit →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

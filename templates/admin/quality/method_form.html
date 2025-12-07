@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Create{% endif %} Test Method - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">{% if object %}Edit{% else %}Create{% endif %} Test Method</h1>
+        <a href="{{ url('quality:method_list') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
+            Back to Test Methods
+        </a>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <form method="post">
+            {{ csrf_input }}
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.code.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.code.label }}
+                    </label>
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.code.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Short code for the test method (e.g., ISO6579, AOAC920.87)</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.name.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Full name of the test method</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.standard_organization.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.standard_organization.label }} (Optional)
+                    </label>
+                    {{ form.standard_organization }}
+                    {% if form.standard_organization.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.standard_organization.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Organization that published the standard (e.g., ISO, AOAC, ASTM)</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.description.label }} (Optional)
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.description.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Detailed description of the test method</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <a href="{{ url('quality:method_list') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

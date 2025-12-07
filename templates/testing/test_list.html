@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Test Requests - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Test Requests</h1>
+        <a href="{{ url('testing:pipeline_start') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+            New Test Request
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch Number</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                    {% if user|is_admin %}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Controller</th>
+                    {% endif %}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sample Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for test in test_requests %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ test.batch_number }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ test.product.name }}</td>
+                    {% if user|is_admin %}
+                    <td class="px-6 py-4 whitespace-nowrap">{{ test.controller_user.username }}</td>
+                    {% endif %}
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded
+                            {% if test.status == 'Approved' %}bg-green-100 text-green-700
+                            {% elif test.status == 'Rejected' %}bg-red-100 text-red-700
+                            {% elif test.status == 'Completed' %}bg-blue-100 text-blue-700
+                            {% elif test.status == 'Submitted for Review' %}bg-orange-100 text-orange-700
+                            {% elif test.status == 'In-Progress' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ test.get_status_display() }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ test.sample_date|date('Y-m-d') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ test.get_progress_percentage() }}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600">{{ test.get_progress_percentage() }}%</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ url('testing:detail', test_id=test.id) }}" class="text-blue-600 hover:text-blue-800">View</a>
+                        {% if test.status == 'Submitted for Review' and user|is_admin %}
+                        <a href="{{ url('testing:detail', test_id=test.id) }}" class="ml-4 text-orange-600 hover:text-orange-800">Review</a>
+                        {% elif test.current_step < 4 %}
+                        <a href="{{ url('testing:pipeline_step', test_id=test.id, step=test.current_step) }}" class="ml-4 text-green-600 hover:text-green-800">Continue</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{% if user|is_admin %}7{% else %}6{% endif %}" class="px-6 py-4 text-center text-gray-500">No test requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

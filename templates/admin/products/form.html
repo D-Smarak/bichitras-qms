@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Create{% endif %} Product - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">{% if object %}Edit{% else %}Create{% endif %} Product</h1>
+        <div class="flex space-x-2">
+            <a href="{{ url('products:group_list') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded text-sm">
+                Manage Categories
+            </a>
+            <a href="{{ url('products:unit_list') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded text-sm">
+                Manage Units
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <form method="post">
+            {{ csrf_input }}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for field in form %}
+                <div class="{% if field.name == 'description' or field.name == 'notes' %}md:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ field.errors[0] }}</p>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <a href="{{ url('products:list') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

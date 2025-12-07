@@ -1,0 +1,580 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - QMS{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Analytics Dashboard</h1>
+        <div class="space-x-2">
+            <a href="{{ url('analytics:export_pdf') }}{% if query_string() %}?{{ query_string() }}{% endif %}" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
+                Export PDF
+            </a>
+            <a href="{{ url('analytics:export_csv') }}{% if query_string() %}?{{ query_string() }}{% endif %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+                Export CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-semibold mb-4">Filters</h2>
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {{ test_filter.form.product }}
+            {{ test_filter.form.supplier }}
+            {{ test_filter.form.status }}
+            {{ test_filter.form.sample_date_from }}
+            {{ test_filter.form.sample_date_to }}
+            {{ result_filter.form.parameter }}
+            {{ result_filter.form.pass_fail_status }}
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                    Apply Filters
+                </button>
+                <a href="{{ url('analytics:dashboard') }}" class="ml-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+            <h3 class="text-lg font-semibold mb-2">Total Tests</h3>
+            <p class="text-4xl font-bold">{{ total_tests }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
+            <h3 class="text-lg font-semibold mb-2">Passed</h3>
+            <p class="text-4xl font-bold">{{ passed_tests }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-500 to-red-600 p-6 rounded-lg shadow-lg text-white">
+            <h3 class="text-lg font-semibold mb-2">Failed</h3>
+            <p class="text-4xl font-bold">{{ failed_tests }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+            <h3 class="text-lg font-semibold mb-2">Pass Rate</h3>
+            <p class="text-4xl font-bold">{{ pass_rate }}%</p>
+        </div>
+    </div>
+    
+    <!-- Charts Row 1: Status Distribution & Tests Over Time -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Status Distribution</h2>
+            <div style="height: 300px; position: relative;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Tests Over Time (12 Months)</h2>
+            <div style="height: 300px; position: relative;">
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row 2: Product Performance & Controller Performance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Top 10 Products Performance</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="productChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Controller Performance</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="controllerChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row 3: Parameter Performance & Monthly Trends -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Parameter Pass/Fail Rates</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="parameterChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Monthly Status Trends (6 Months)</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row 4: Supplier Performance & Test Method Usage -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Supplier Performance</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="supplierChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Test Method Usage</h2>
+            <div style="height: 350px; position: relative;">
+                <canvas id="methodChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row 5: Daily Volume & Progress Distribution -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Daily Test Volume (Last 30 Days)</h2>
+            <div style="height: 300px; position: relative;">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Progress Distribution</h2>
+            <div style="height: 300px; position: relative;">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Table -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Filtered Test Results</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Controller</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for test in filtered_tests %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ test.batch_number }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ test.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ test.controller_user.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded
+                                {% if test.status == 'Approved' %}bg-green-100 text-green-700
+                                {% elif test.status == 'Rejected' %}bg-red-100 text-red-700
+                                {% elif test.status == 'Submitted for Review' %}bg-orange-100 text-orange-700
+                                {% elif test.status == 'Completed' %}bg-blue-100 text-blue-700
+                                {% elif test.status == 'In-Progress' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ test.get_status_display() }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="w-24 bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ test.get_progress_percentage() }}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600">{{ test.get_progress_percentage() }}%</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ test.sample_date|date('Y-m-d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No results found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Chart colors
+    const colors = {
+        primary: 'rgba(59, 130, 246, 0.8)',
+        success: 'rgba(34, 197, 94, 0.8)',
+        danger: 'rgba(239, 68, 68, 0.8)',
+        warning: 'rgba(251, 191, 36, 0.8)',
+        info: 'rgba(99, 102, 241, 0.8)',
+        purple: 'rgba(168, 85, 247, 0.8)',
+        orange: 'rgba(249, 115, 22, 0.8)',
+    };
+    
+    const borderColors = {
+        primary: 'rgba(59, 130, 246, 1)',
+        success: 'rgba(34, 197, 94, 1)',
+        danger: 'rgba(239, 68, 68, 1)',
+        warning: 'rgba(251, 191, 36, 1)',
+        info: 'rgba(99, 102, 241, 1)',
+        purple: 'rgba(168, 85, 247, 1)',
+        orange: 'rgba(249, 115, 22, 1)',
+    };
+    
+    // Status Distribution Pie Chart
+    const statusData = {{ status_data|safe }};
+    new Chart(document.getElementById('statusChart'), {
+        type: 'pie',
+        data: {
+            labels: statusData.labels,
+            datasets: [{
+                data: statusData.counts,
+                backgroundColor: [
+                    colors.success,
+                    colors.primary,
+                    colors.warning,
+                    colors.orange,
+                    colors.danger,
+                    colors.info
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Tests Over Time Line Chart
+    const timeData = {{ time_data|safe }};
+    new Chart(document.getElementById('timeChart'), {
+        type: 'line',
+        data: {
+            labels: timeData.labels,
+            datasets: [{
+                label: 'Tests',
+                data: timeData.counts,
+                borderColor: borderColors.primary,
+                backgroundColor: colors.primary,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Product Performance Bar Chart
+    const productData = {{ product_data|safe }};
+    new Chart(document.getElementById('productChart'), {
+        type: 'bar',
+        data: {
+            labels: productData.labels,
+            datasets: [
+                {
+                    label: 'Total Tests',
+                    data: productData.total,
+                    backgroundColor: colors.primary
+                },
+                {
+                    label: 'Passed',
+                    data: productData.passed,
+                    backgroundColor: colors.success
+                },
+                {
+                    label: 'Failed',
+                    data: productData.failed,
+                    backgroundColor: colors.danger
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Controller Performance Bar Chart
+    const controllerData = {{ controller_data|safe }};
+    new Chart(document.getElementById('controllerChart'), {
+        type: 'bar',
+        data: {
+            labels: controllerData.labels,
+            datasets: [
+                {
+                    label: 'Total Tests',
+                    data: controllerData.total,
+                    backgroundColor: colors.primary
+                },
+                {
+                    label: 'Completed',
+                    data: controllerData.completed,
+                    backgroundColor: colors.success
+                },
+                {
+                    label: 'Submitted',
+                    data: controllerData.submitted,
+                    backgroundColor: colors.orange
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Parameter Pass/Fail Rates Bar Chart
+    const parameterData = {{ parameter_data|safe }};
+    new Chart(document.getElementById('parameterChart'), {
+        type: 'bar',
+        data: {
+            labels: parameterData.labels,
+            datasets: [
+                {
+                    label: 'Passed',
+                    data: parameterData.passed,
+                    backgroundColor: colors.success
+                },
+                {
+                    label: 'Failed',
+                    data: parameterData.failed,
+                    backgroundColor: colors.danger
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Monthly Trends Line Chart
+    const trendsData = {{ trends_data|safe }};
+    new Chart(document.getElementById('trendsChart'), {
+        type: 'line',
+        data: {
+            labels: trendsData.labels,
+            datasets: [
+                {
+                    label: 'Approved',
+                    data: trendsData.approved,
+                    borderColor: borderColors.success,
+                    backgroundColor: colors.success,
+                    tension: 0.4
+                },
+                {
+                    label: 'Completed',
+                    data: trendsData.completed,
+                    borderColor: borderColors.primary,
+                    backgroundColor: colors.primary,
+                    tension: 0.4
+                },
+                {
+                    label: 'Submitted',
+                    data: trendsData.submitted,
+                    borderColor: borderColors.orange,
+                    backgroundColor: colors.orange,
+                    tension: 0.4
+                },
+                {
+                    label: 'In-Progress',
+                    data: trendsData.in_progress,
+                    borderColor: borderColors.warning,
+                    backgroundColor: colors.warning,
+                    tension: 0.4
+                },
+                {
+                    label: 'Pending',
+                    data: trendsData.pending,
+                    borderColor: borderColors.info,
+                    backgroundColor: colors.info,
+                    tension: 0.4
+                },
+                {
+                    label: 'Rejected',
+                    data: trendsData.rejected,
+                    borderColor: borderColors.danger,
+                    backgroundColor: colors.danger,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    stacked: false
+                }
+            }
+        }
+    });
+    
+    // Supplier Performance Bar Chart
+    const supplierData = {{ supplier_data|safe }};
+    new Chart(document.getElementById('supplierChart'), {
+        type: 'bar',
+        data: {
+            labels: supplierData.labels,
+            datasets: [
+                {
+                    label: 'Total Tests',
+                    data: supplierData.total,
+                    backgroundColor: colors.primary
+                },
+                {
+                    label: 'Approved',
+                    data: supplierData.approved,
+                    backgroundColor: colors.success
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Test Method Usage Pie Chart
+    const methodData = {{ method_data|safe }};
+    new Chart(document.getElementById('methodChart'), {
+        type: 'doughnut',
+        data: {
+            labels: methodData.labels,
+            datasets: [{
+                data: methodData.counts,
+                backgroundColor: [
+                    colors.primary,
+                    colors.success,
+                    colors.warning,
+                    colors.danger,
+                    colors.info,
+                    colors.purple,
+                    colors.orange,
+                    'rgba(236, 72, 153, 0.8)',
+                    'rgba(20, 184, 166, 0.8)',
+                    'rgba(251, 146, 60, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Daily Volume Line Chart
+    const dailyData = {{ daily_data|safe }};
+    new Chart(document.getElementById('dailyChart'), {
+        type: 'line',
+        data: {
+            labels: dailyData.labels,
+            datasets: [{
+                label: 'Tests per Day',
+                data: dailyData.counts,
+                borderColor: borderColors.purple,
+                backgroundColor: colors.purple,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Progress Distribution Pie Chart
+    const progressData = {{ progress_data|safe }};
+    new Chart(document.getElementById('progressChart'), {
+        type: 'pie',
+        data: {
+            labels: progressData.labels,
+            datasets: [{
+                data: progressData.counts,
+                backgroundColor: [
+                    colors.danger,
+                    colors.warning,
+                    colors.orange,
+                    colors.success
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

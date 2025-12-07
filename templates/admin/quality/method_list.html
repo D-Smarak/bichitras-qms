@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Test Methods - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Test Methods</h1>
+        <div class="flex space-x-2">
+            <a href="{{ url('quality:specification_list') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
+                Back to Specifications
+            </a>
+            <a href="{{ url('quality:method_create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                Add Test Method
+            </a>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Organization</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for method in methods %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-semibold">{{ method.code }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ method.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if method.standard_organization %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-sm">{{ method.standard_organization }}</span>
+                        {% else %}
+                            <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">{{ method.description[:50] }}{% if method.description|length > 50 %}...{% endif %}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ url('quality:method_update', pk=method.id) }}" class="text-blue-600 hover:text-blue-800">Edit</a>
+                        <a href="{{ url('quality:method_delete', pk=method.id) }}" class="ml-4 text-red-600 hover:text-red-800">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No test methods found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

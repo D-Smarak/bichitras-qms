@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QMS - Quality Management System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url('dashboard') }}" class="text-xl font-bold">Bichitras QMS</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <span class="text-sm">Welcome, {{ user.username }} ({{ user.get_role_display() }})</span>
+                        <a href="{{ url('users:logout') }}" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded">Logout</a>
+                    {% else %}
+                        <a href="{{ url('users:login') }}" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        {% if user.is_authenticated %}
+        <aside class="w-64 bg-gray-800 text-white min-h-screen">
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url('dashboard') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Dashboard</a>
+                    </li>
+                    
+                    {% if user|is_admin %}
+                    <li class="mt-4">
+                        <span class="text-gray-400 text-sm font-semibold">Admin</span>
+                    </li>
+                    <li>
+                        <a href="{{ url('users:list') }}" class="block px-4 py-2 rounded hover:bg-gray-700">User Management</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('products:list') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Products</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('products:supplier_list') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Suppliers</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('quality:specification_list') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Specifications</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('analytics:dashboard') }}" class="block px-4 py-2 rounded hover:bg-gray-700">Analytics</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% if user|is_controller %}
+                    <li class="mt-4">
+                        <span class="text-gray-400 text-sm font-semibold">Controller</span>
+                    </li>
+                    <li>
+                        <a href="{{ url('testing:pipeline_start') }}" class="block px-4 py-2 rounded hover:bg-gray-700">New Test</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('testing:list') }}" class="block px-4 py-2 rounded hover:bg-gray-700">My Tests</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </aside>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="p-4 mb-2 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

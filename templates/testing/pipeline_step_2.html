@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "testing/pipeline_progress.html" as progress %}
+
+{% block title %}Step 2: Parameter Selection - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    {{ progress.progress_bar(2, 4) }}
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-6">Step 2: Test Parameters Selection</h2>
+        
+        <div class="mb-4 p-4 bg-blue-50 rounded">
+            <p class="font-semibold">Product: {{ test_request.product.name }}</p>
+            <p class="text-sm text-gray-600">Batch: {{ test_request.batch_number }}</p>
+        </div>
+        
+        {% if specifications %}
+        <form method="post">
+            {{ csrf_input }}
+            
+            <div class="space-y-3">
+                {% for spec in specifications %}
+                <div class="border rounded p-4">
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" name="parameters" value="{{ spec.parameter.id }}" class="w-5 h-5">
+                        <div class="flex-1">
+                            <span class="font-semibold">{{ spec.parameter.name }}</span>
+                            {% if spec.is_critical %}
+                                <span class="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Critical</span>
+                            {% endif %}
+                            <p class="text-sm text-gray-600 mt-1">
+                                {% if spec.parameter.data_type == 'Numeric' %}
+                                    Range: {{ spec.min_value|default('N/A') }} - {{ spec.max_value|default('N/A') }} {{ spec.unit }}
+                                {% else %}
+                                    Standard: {{ spec.standard_text_value|default('N/A') }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if form.parameters.errors %}
+                <p class="text-red-500 text-sm mt-2">{{ form.parameters.errors.0 }}</p>
+            {% endif %}
+            
+            <div class="mt-6 flex justify-between">
+                <a href="{{ url('testing:pipeline_step', test_id=test_request.id, step=1) }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    ← Back
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+                    Next: Enter Results →
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="p-4 bg-yellow-50 rounded">
+            <p class="text-yellow-800">No specifications found for this product. Please add specifications first.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

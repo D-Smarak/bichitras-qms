@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Statistics Cards -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Products</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_products|default(0) }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Pending Tests</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ pending_tests|default(0) }}</p>
+        </div>
+        
+        {% if user|is_admin %}
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Submitted for Review</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ submitted_tests|default(0) }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Completed Tests</h3>
+            <p class="text-3xl font-bold text-green-600">{{ completed_tests|default(0) }}</p>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    {% if user|is_admin %}
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4">Admin Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url('products:create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded text-center">
+                Add Product
+            </a>
+            <a href="{{ url('products:supplier_create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded text-center">
+                Add Supplier
+            </a>
+            <a href="{{ url('quality:specification_create') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded text-center">
+                Add Specification
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Controller Section -->
+    {% if user|is_controller %}
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4">Controller Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{{ url('testing:pipeline_start') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded text-center">
+                Start New Test
+            </a>
+            <a href="{{ url('testing:list') }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded text-center">
+                View My Tests
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Admin: Tests Submitted for Review -->
+    {% if user|is_admin and submitted_for_review %}
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4">Tests Submitted for Review</h2>
+        <div class="space-y-2">
+            {% for test in submitted_for_review %}
+            <div class="border-l-4 border-orange-500 pl-4 py-2 flex justify-between items-center">
+                <div>
+                    <p class="font-semibold">{{ test.batch_number }} - {{ test.product.name }}</p>
+                    <p class="text-sm text-gray-600">Controller: {{ test.controller_user.username }} | Date: {{ test.sample_date|date('Y-m-d') }}</p>
+                </div>
+                <a href="{{ url('testing:detail', test_id=test.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
+                    Review
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activity -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-4">Recent Activity</h2>
+        <div class="space-y-2">
+            {% if recent_tests %}
+                {% for test in recent_tests %}
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <p class="font-semibold">{{ test.batch_number }} - {{ test.product.name }}</p>
+                    <p class="text-sm text-gray-600">
+                        Status: {{ test.get_status_display() }} | 
+                        {% if user|is_admin %}Controller: {{ test.controller_user.username }} | {% endif %}
+                        Date: {{ test.sample_date|date('Y-m-d') }} | 
+                        Progress: {{ test.get_progress_percentage() }}%
+                    </p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-gray-500">No recent activity</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Test Method - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Delete Test Method</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <p class="mb-4">Are you sure you want to delete <strong>{{ object.name }}</strong> ({{ object.code }})?</p>
+        <p class="text-sm text-gray-600 mb-6">This action will soft-delete the test method. It can be restored later if needed.</p>
+        
+        <form method="post">
+            {{ csrf_input }}
+            <div class="flex justify-end space-x-4">
+                <a href="{{ url('quality:method_list') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

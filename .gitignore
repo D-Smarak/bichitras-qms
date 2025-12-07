@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+
+# Virtual Environment
+venv/
+.venv
+
+
+# Environments
+.venv
+venv/
+venv.bak/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+

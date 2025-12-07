@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Suppliers</h1>
+        <a href="{{ url('products:supplier_create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+            Add Supplier
+        </a>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for supplier in suppliers %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ supplier.supplier_code }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ supplier.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ supplier.contact_person }}<br><small class="text-gray-500">{{ supplier.email }}</small></td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ supplier.rating }}/5</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded
+                            {% if supplier.status == 'approved' %}bg-green-100 text-green-700
+                            {% elif supplier.status == 'rejected' %}bg-red-100 text-red-700
+                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ supplier.get_status_display() }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ url('products:supplier_update', pk=supplier.id) }}" class="text-blue-600 hover:text-blue-800">Edit</a>
+                        <a href="{{ url('products:supplier_delete', pk=supplier.id) }}" class="ml-4 text-red-600 hover:text-red-800">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No suppliers found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

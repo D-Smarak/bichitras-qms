@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Test Request Detail - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Test Request Detail</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-semibold mb-4">Test Information</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-600">Batch Number</p>
+                <p class="font-semibold">{{ test_request.batch_number }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Product</p>
+                <p class="font-semibold">{{ test_request.product.name }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Status</p>
+                <p class="font-semibold">{{ test_request.get_status_display() }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Sample Date</p>
+                <p class="font-semibold">{{ test_request.sample_date|date('Y-m-d') }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Progress</p>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ test_request.get_progress_percentage() }}%"></div>
+                </div>
+                <span class="text-sm text-gray-600">{{ test_request.get_progress_percentage() }}%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+        {% if results %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-4 py-2">Parameter</th>
+                        <th class="border border-gray-300 px-4 py-2">Actual Value</th>
+                        <th class="border border-gray-300 px-4 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">{{ result.parameter.name }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ result.actual_value }}</td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            {% if result.pass_fail_status == True %}
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">Pass</span>
+                            {% elif result.pass_fail_status == False %}
+                                <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-sm">Fail</span>
+                            {% else %}
+                                <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-sm">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500">No results available yet.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Admin Approval Section -->
+    {% if can_approve %}
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Admin Review</h2>
+        <p class="text-gray-600 mb-4">This test has been submitted for review. Please review and take action.</p>
+        <form method="post">
+            {{ csrf_input }}
+            <div class="flex space-x-4">
+                <button type="submit" name="action" value="approve" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded">
+                    Approve (100%)
+                </button>
+                <button type="submit" name="action" value="reject" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded">
+                    Reject
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

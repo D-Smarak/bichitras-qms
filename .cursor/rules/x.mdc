@@ -1,0 +1,95 @@
+---
+alwaysApply: true
+---
+description: Comprehensive project rules for Bichitras QMS (Django + Jinja2)
+globs: *
+
+Project Rules: Bichitras QMS
+
+1. Project Context
+
+Name: Bichitras Quality Management System (QMS)
+
+Goal: Centralized web application for lab testing operations, product management, and quality compliance.
+
+Architecture: Monolithic Django application (SSR) using Jinja2 templates.
+
+2. Tech Stack
+
+Language: Python 3.10+
+
+Framework: Django 5.x
+
+Frontend Engine: Jinja2 (Strictly NO Django Template Language {% %})
+
+Styling: TailwindCSS
+
+Database: SQLite (Dev) -> PostgreSQL (Prod)
+
+Auth: Custom User Model (AbstractUser)
+
+3. Architectural Guidelines
+
+MVT Pattern: Adhere strictly to Model-View-Template.
+
+Fat Models, Thin Views: Encapsulate data consistency and validation logic (e.g., range checks for test results) within Models.
+
+Service Layer: Use services.py for complex cross-model business logic (e.g., calculating compliance statistics) to keep views clean.
+
+4. Coding Standards
+
+Naming:
+
+Python Variables/Functions: snake_case
+
+Classes/Models: PascalCase
+
+Constants: UPPER_CASE
+
+Typing: Mandatory Python type hints for all function signatures.
+
+Documentation: Docstrings required for all non-trivial methods and classes.
+
+Linting: PEP 8 compliance.
+
+5. Framework Specifics (Django + Jinja2)
+
+Jinja2 Syntax:
+
+Use {{ url('route_name') }} (Not {% url %})
+
+Use {{ static('path/to/asset') }} (Not {% static %})
+
+Place all templates in templates/.
+
+Models:
+
+Primary Keys: Use UUIDField for id.
+
+Timestamps: All models must inherit a generic base class with created_at and updated_at.
+
+Deletion: Implement Soft Deletes. Use is_active=False behavior; do not delete rows from the DB.
+
+6. Access Control & Roles
+
+Admin: Superuser access. Handles Master Data (Products, Suppliers, Specs).
+
+Controller: Operational access. Handles Transactions (Samples, Results).
+
+Security: Ensure views are protected by @login_required and role-based decorators.
+
+7. Core Modules
+
+User Management: Custom Auth, Role assignment.
+
+Master Data: Products, Hierarchical Groups, Suppliers, UOMs.
+
+Lab Config: Test Parameters, Product Specifications (Min/Max limits).
+
+Pipeline: Test Request -> Result Entry -> Validation -> Reporting.
+
+8. Error Handling
+
+Feedback: Use Django messages framework for success/error alerts.
+
+Safety: Handle DoesNotExist and ValidationError gracefully; do not let the app crash to a 500 error for user input mistakes.

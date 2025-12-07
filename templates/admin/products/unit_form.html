@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Create{% endif %} Unit of Measure - QMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">{% if object %}Edit{% else %}Create{% endif %} Unit of Measure</h1>
+        <a href="{{ url('products:unit_list') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
+            Back to Units
+        </a>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <form method="post">
+            {{ csrf_input }}
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.name.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Full name of the unit (e.g., Kilograms, Liters)</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.symbol.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                        {{ form.symbol.label }}
+                    </label>
+                    {{ form.symbol }}
+                    {% if form.symbol.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.symbol.errors[0] }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Unit symbol (e.g., kg, l, pcs)</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <a href="{{ url('products:unit_list') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
